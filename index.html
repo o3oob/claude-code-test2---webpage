@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>프로젝트 헤일메리 | 앤디 위어</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Noto Sans KR', 'Helvetica Neue', 'sans-serif'],
+          },
+          colors: {
+            'apple-blue': '#0A84FF',
+            'apple-green': '#30D158',
+            'apple-yellow': '#FFD60A',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --blue: #0A84FF;
+      --green: #30D158;
+      --gold: #FFD60A;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      word-break :keep-all;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Noto Sans KR', 'Helvetica Neue', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Canvas Starfield ── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── All content above canvas ── */
+    .above { position: relative; z-index: 1; }
+
+    /* ── Glassmorphism card ── */
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+    }
+
+    /* ── Gradient text ── */
+    .grad-white {
+      background: linear-gradient(160deg, #fff 30%, #888);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-blue {
+      background: linear-gradient(135deg, #0A84FF, #5AC8FA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-green {
+      background: linear-gradient(135deg, #30D158, #2ECC71);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Scroll fade-in ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.85s cubic-bezier(.16,1,.3,1), transform 0.85s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: 0.1s; }
+    .delay-2 { transition-delay: 0.2s; }
+    .delay-3 { transition-delay: 0.3s; }
+    .delay-4 { transition-delay: 0.45s; }
+
+    /* ── Nav ── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 200;
+      transition: background .4s ease, border-color .4s ease;
+      border-bottom: 1px solid transparent;
+    }
+    #nav.opaque {
+      background: rgba(0,0,0,.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-color: rgba(255,255,255,.08);
+    }
+
+    /* ── Hero text ── */
+    .hero-title {
+      font-size: clamp(3.2rem, 11vw, 9rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+    }
+
+    /* ── Section title ── */
+    .sec-title {
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.08;
+    }
+
+    /* ── Stat number ── */
+    .stat-num {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #0A84FF, #5AC8FA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── CTA buttons ── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--blue);
+      color: #fff; font-weight: 700; font-size: 1rem;
+      padding: .85rem 2.2rem; border-radius: 50px;
+      text-decoration: none;
+      transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+    }
+    .btn-primary:hover {
+      background: #0070e0;
+      transform: scale(1.04);
+      box-shadow: 0 20px 50px rgba(10,132,255,.45);
+    }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,.3);
+      color: #fff; font-weight: 600; font-size: 1rem;
+      padding: .85rem 2.2rem; border-radius: 50px;
+      text-decoration: none;
+      transition: border-color .25s ease, background .25s ease;
+    }
+    .btn-outline:hover {
+      border-color: rgba(255,255,255,.8);
+      background: rgba(255,255,255,.08);
+    }
+
+    /* ── Cards ── */
+    .card-hover {
+      transition: transform .3s ease, border-color .3s ease, background .3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-8px);
+      border-color: rgba(10,132,255,.4);
+      background: rgba(10,132,255,.07);
+    }
+
+    /* ── Quote bar ── */
+    .quote-bar {
+      border-left: 3px solid var(--blue);
+      padding-left: 1.2rem;
+    }
+
+    /* ── Nebula glows ── */
+    .glow-blue { background: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(10,84,255,.1) 0%, transparent 70%); }
+    .glow-green { background: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(48,209,88,.07) 0%, transparent 70%); }
+    .glow-gold  { background: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(255,214,10,.07) 0%, transparent 70%); }
+
+    /* ── Award badge ── */
+    .award-badge {
+      background: linear-gradient(135deg, rgba(255,214,10,.1), rgba(255,214,10,.04));
+      border: 1px solid rgba(255,214,10,.2);
+      border-radius: 20px;
+    }
+
+    /* ── Scroll indicator ── */
+    .bounce { animation: bnd 2.2s ease-in-out infinite; }
+    @keyframes bnd { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
+
+    /* ── Book spine / cover visual ── */
+    .book-wrap {
+      perspective: 1200px;
+    }
+    .book-3d {
+      transform: rotateY(-18deg) rotateX(4deg);
+      transition: transform .6s cubic-bezier(.16,1,.3,1);
+      filter: drop-shadow(0 40px 80px rgba(10,132,255,.35));
+    }
+    .book-3d:hover {
+      transform: rotateY(-6deg) rotateX(2deg) scale(1.05);
+    }
+
+    /* ── Shooting star ── */
+    @keyframes shoot {
+      0%   { opacity:0; transform: translate(0,0) scaleX(1); }
+      10%  { opacity:1; }
+      100% { opacity:0; transform: translate(450px,300px) scaleX(8); }
+    }
+    .sstar {
+      position: fixed;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: #fff;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+    }
+
+    /* ── Horizontal rule gradient ── */
+    .hr-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ STARFIELD ═══════════════════ -->
+<canvas id="starfield"></canvas>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav id="nav" class="above">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase">프로젝트 헤일메리</span>
+    <a href="https://product.kyobobook.co.kr/detail/S000000479333"
+       target="_blank" rel="noopener noreferrer"
+       class="text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 px-5 py-2 rounded-full transition-all duration-300">
+      지금 구매하기 →
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="above glow-blue min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24">
+  <div class="max-w-5xl mx-auto w-full">
+
+    <!-- Badge -->
+    <div class="reveal inline-flex items-center gap-2 bg-white/10 border border-white/15 backdrop-blur-sm rounded-full px-4 py-2 mb-10 text-sm text-gray-300">
+      <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+      《마션》 앤디 위어 신작 · 2021
+    </div>
+
+    <!-- Title -->
+    <h1 class="hero-title grad-white reveal delay-1 mb-6">
+      프로젝트<br>헤일메리
+    </h1>
+
+    <!-- Tagline -->
+    <p class="text-2xl md:text-3xl font-light text-gray-200 mb-3 reveal delay-2">
+      눈을 뜬다. 아무것도 기억나지 않는다.
+    </p>
+    <p class="text-lg text-gray-400 max-w-xl mx-auto mb-14 reveal delay-3 leading-relaxed">
+      혼자 우주에서 깨어난 한 남자. 그의 손에 인류의 운명이 달려 있다.
+    </p>
+
+    <!-- CTA -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center reveal delay-4">
+      <a href="https://product.kyobobook.co.kr/detail/S000000479333" target="_blank" rel="noopener noreferrer" class="btn-primary">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        교보문고에서 구매하기
+      </a>
+      <a href="#opening" class="btn-outline">줄거리 보기 ↓</a>
+    </div>
+  </div>
+
+  <!-- scroll arrow -->
+  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 bounce text-gray-600">
+    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════ OPENING CINEMATIC ═══════════════════ -->
+<section id="opening" class="above py-32 px-6">
+  <div class="max-w-4xl mx-auto">
+
+    <div class="reveal text-center mb-16">
+      <p class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">Opening Scene</p>
+      <div class="text-5xl md:text-7xl font-black leading-tight">
+        <span class="text-white">눈을 뜬다.</span><br>
+        <span class="text-gray-700">아무것도 기억나지 않는다.</span>
+      </div>
+    </div>
+
+    <div class="glass p-8 md:p-12 reveal delay-2 space-y-5">
+      <p class="text-lg md:text-xl text-gray-300 leading-relaxed">
+        이름 모를 별들을 지나는 우주선 <span class="text-white font-semibold">'헤일메리호'</span>에서
+        기나긴 수면 끝에 한 인간이 눈을 뜬다. 자신의 이름도, 고향도, 왜 여기 있는지도 전혀 기억이 없다.
+      </p>
+      <p class="text-lg md:text-xl text-gray-300 leading-relaxed">
+        조금씩 되살아나는 기억 속에서 드러나는 진실 —
+        <span class="text-blue-400 font-semibold">태양이 빛을 잃어가고 있다.</span>
+      </p>
+      <p class="text-lg md:text-xl text-gray-300 leading-relaxed">
+        그리고 이 우주선은…
+        <span class="text-white font-bold text-xl">지구로 돌아올 수 없다.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CRISIS ═══════════════════ -->
+<section class="above py-24 px-6 glow-blue">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <p class="reveal text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">The Crisis</p>
+      <h2 class="sec-title reveal delay-1 mb-6">태양이 죽어가고 있다</h2>
+      <p class="reveal delay-2 text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        미지의 외계 미생물 <span class="text-white font-semibold">'아스트로파지'</span>가 태양을 잠식하고 있다.<br>
+        방치하면 30년 내 지구는 빙하기를 맞는다.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-8 text-center reveal">
+        <div class="stat-num">0.1%</div>
+        <p class="text-gray-400 mt-3 text-sm leading-snug">태양 에너지<br>연간 감소율</p>
+      </div>
+      <div class="glass rounded-2xl p-8 text-center reveal delay-1">
+        <div class="stat-num">30년</div>
+        <p class="text-gray-400 mt-3 text-sm leading-snug">빙하기까지<br>남은 시간</p>
+      </div>
+      <div class="glass rounded-2xl p-8 text-center reveal delay-2">
+        <div class="stat-num">1명</div>
+        <p class="text-gray-400 mt-3 text-sm leading-snug">인류의<br>마지막 희망</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ STORY ═══════════════════ -->
+<section id="story" class="above py-32 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-24">
+      <p class="reveal text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">The Story</p>
+      <h2 class="sec-title reveal delay-1 mb-6">인류를 구하러 가는<br>편도 여행</h2>
+      <p class="reveal delay-2 text-lg text-gray-400 max-w-xl mx-auto">
+        귀환 불가. 동료 전원 사망. 기억 상실.<br>
+        최악의 조건 속에서 임무는 시작된다.
+      </p>
+    </div>
+
+    <!-- Timeline -->
+    <div class="space-y-16">
+
+      <!-- 01 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center reveal">
+        <div class="glass p-8 rounded-2xl">
+          <span class="text-7xl font-black text-blue-500/20 leading-none select-none">01</span>
+          <h3 class="text-2xl font-bold mt-4 mb-3">기억 없이 우주에서 깨어나다</h3>
+          <p class="text-gray-400 leading-relaxed">
+            이름도, 임무도, 동료도 없다. 단서를 모아 자신이 누구인지 찾아가는 과정이
+            마치 미스터리 소설처럼 긴장감을 고조시킨다.
+          </p>
+        </div>
+        <div class="text-center space-y-3">
+          <div class="text-9xl leading-none select-none">🌌</div>
+          <p class="text-gray-600 text-sm">지구로부터 약 12광년 거리</p>
+        </div>
+      </div>
+
+      <!-- 02 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center reveal">
+        <div class="text-center space-y-3 md:order-first">
+          <div class="text-9xl leading-none select-none">☀️</div>
+          <p class="text-gray-600 text-sm">목적지: 고래자리 타우</p>
+        </div>
+        <div class="glass p-8 rounded-2xl">
+          <span class="text-7xl font-black text-blue-500/20 leading-none select-none">02</span>
+          <h3 class="text-2xl font-bold mt-4 mb-3">고래자리 타우를 향해</h3>
+          <p class="text-gray-400 leading-relaxed">
+            아스트로파지의 피해를 받지 않는 유일한 별, 고래자리 타우.
+            그 비밀을 캐내야 한다. 단 — 돌아오는 연료는 없다.
+          </p>
+        </div>
+      </div>
+
+      <!-- 03 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center reveal">
+        <div class="glass p-8 rounded-2xl">
+          <span class="text-7xl font-black text-green-500/20 leading-none select-none">03</span>
+          <h3 class="text-2xl font-bold mt-4 mb-3">상상도 못 했던 만남</h3>
+          <p class="text-gray-400 leading-relaxed">
+            홀로 임무를 수행하던 그 앞에 나타난 외계 우주선.
+            언어도, 외모도, 사고방식도 완전히 다른 존재.
+            그런데 — <span class="text-green-400 font-semibold">이 외계인도 같은 문제를 풀러 왔다.</span>
+          </p>
+        </div>
+        <div class="text-center space-y-3">
+          <div class="text-9xl leading-none select-none">🛸</div>
+          <p class="text-gray-600 text-sm">인류 역사상 최초의 외계 지성체</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CHARACTERS ═══════════════════ -->
+<section class="above py-32 px-6 glow-green">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <p class="reveal text-xs font-semibold tracking-widest text-green-400 uppercase mb-4">Characters</p>
+      <h2 class="sec-title reveal delay-1 mb-6">상상 속 최고의 콤비</h2>
+      <p class="reveal delay-2 text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        서로 다른 별에서 온 두 존재. 언어도, 생김새도 완전히 다르지만
+        그들은 서로에게 유일한 친구가 된다.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- Grace -->
+      <div class="glass card-hover p-10 rounded-2xl reveal">
+        <div class="text-6xl mb-6 select-none">👨‍🔬</div>
+        <span class="inline-block bg-blue-500/20 text-blue-400 text-xs font-bold px-3 py-1 rounded-full mb-5 tracking-wide uppercase">인간 · 지구</span>
+        <h3 class="text-2xl font-bold mb-4">라일랜드 그레이스</h3>
+        <p class="text-gray-400 leading-relaxed mb-8">
+          중학교 과학 교사이자 분자생물학자. 명석하지만 어딘가 엉뚱하다.
+          기억도, 동료도, 귀환도 없는 상황에서 오직 과학적 사고로 문제를 돌파해나간다.
+        </p>
+        <div class="quote-bar">
+          <p class="text-gray-300 text-sm italic leading-relaxed">"내가 지구를 구할 수 있다면… 설령 돌아오지 못한다 해도."</p>
+        </div>
+      </div>
+
+      <!-- Rocky -->
+      <div class="glass card-hover p-10 rounded-2xl reveal delay-2" style="border-color: rgba(48,209,88,.2)">
+        <div class="text-6xl mb-6 select-none">🕷️</div>
+        <span class="inline-block bg-green-500/20 text-green-400 text-xs font-bold px-3 py-1 rounded-full mb-5 tracking-wide uppercase">에리드인 · 외계</span>
+        <h3 class="text-2xl font-bold mb-4">로키 (Rocky)</h3>
+        <p class="text-gray-400 leading-relaxed mb-8">
+          거미 같은 외모, 소리로 의사소통하는 에리드 행성 출신 엔지니어.
+          처음의 어색함을 넘어 그레이스의 가장 믿을 수 있는 파트너가 된다.
+        </p>
+        <div class="quote-bar" style="border-color: var(--green)">
+          <p class="text-gray-300 text-sm italic leading-relaxed">"그레이스, 친구. 우리가 함께라면 반드시 해결할 수 있어."</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ WHY READ ═══════════════════ -->
+<section class="above py-32 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20">
+      <p class="reveal text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">Why Read It</p>
+      <h2 class="sec-title reveal delay-1 mb-6">이 책을 읽어야 하는<br>4가지 이유</h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+      <div class="glass card-hover p-8 rounded-2xl reveal">
+        <div class="text-5xl mb-6 select-none">🧬</div>
+        <h3 class="text-xl font-bold mb-3">읽히는 하드 SF</h3>
+        <p class="text-gray-400 leading-relaxed text-sm">
+          실제 물리학·화학·생물학을 기반으로 한 철저한 고증.
+          어렵지 않고 오히려 "아, 그렇구나!" 하는 쾌감을 준다.
+        </p>
+      </div>
+
+      <div class="glass card-hover p-8 rounded-2xl reveal delay-1">
+        <div class="text-5xl mb-6 select-none">😄</div>
+        <h3 class="text-xl font-bold mb-3">절망 속의 유머</h3>
+        <p class="text-gray-400 leading-relaxed text-sm">
+          인류 멸망의 위기 속에서도 웃음을 잃지 않는 주인공.
+          《마션》을 재밌게 읽었다면 절대 후회하지 않는다.
+        </p>
+      </div>
+
+      <div class="glass card-hover p-8 rounded-2xl reveal delay-2">
+        <div class="text-5xl mb-6 select-none">🤝</div>
+        <h3 class="text-xl font-bold mb-3">우주를 넘어선 우정</h3>
+        <p class="text-gray-400 leading-relaxed text-sm">
+          그레이스와 로키의 우정은 SF 역사상 가장 감동적인 관계 중 하나로 꼽힌다.
+          언어를 넘고, 종(種)을 넘은 진짜 우정.
+        </p>
+      </div>
+
+      <div class="glass card-hover p-8 rounded-2xl reveal delay-3">
+        <div class="text-5xl mb-6 select-none">💔</div>
+        <h3 class="text-xl font-bold mb-3">오랫동안 남는 여운</h3>
+        <p class="text-gray-400 leading-relaxed text-sm">
+          마지막 페이지를 넘기고 나면 한동안 아무것도 할 수 없다.
+          "이 책을 읽기 전으로는 돌아갈 수 없다."
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ AWARDS ═══════════════════ -->
+<section class="above py-32 px-6 glow-gold">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-20">
+      <p class="reveal text-xs font-semibold tracking-widest text-yellow-400 uppercase mb-4">Recognition</p>
+      <h2 class="sec-title reveal delay-1 mb-6">전 세계가 인정한<br>SF 걸작</h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
+      <div class="award-badge p-8 text-center reveal">
+        <div class="text-5xl mb-5 select-none">🏆</div>
+        <h3 class="font-bold text-base mb-2">휴고상 최종 후보</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">2022 Hugo Award Finalist<br>SF 최고 권위의 상</p>
+      </div>
+      <div class="award-badge p-8 text-center reveal delay-1">
+        <div class="text-5xl mb-5 select-none">📰</div>
+        <h3 class="font-bold text-base mb-2">NYT 베스트셀러</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">28주 연속 등재<br>뉴욕 타임스 베스트셀러</p>
+      </div>
+      <div class="award-badge p-8 text-center reveal delay-2">
+        <div class="text-5xl mb-5 select-none">🎧</div>
+        <h3 class="font-bold text-base mb-2">오디오북 어워드</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">2022 Audie Award 수상<br>오디오북 최고 권위의 상</p>
+      </div>
+    </div>
+
+    <!-- Press quotes -->
+    <div class="space-y-5">
+      <div class="glass p-6 rounded-2xl reveal">
+        <p class="text-gray-200 text-lg italic mb-3 leading-relaxed">"생존과 우정의 힘에 관한 잊지 못할 이야기"</p>
+        <p class="text-gray-500 text-sm">— Kirkus Reviews (커커스 리뷰)</p>
+      </div>
+      <div class="glass p-6 rounded-2xl reveal delay-1">
+        <p class="text-gray-200 text-lg italic mb-3 leading-relaxed">"《마션》 이후 앤디 위어의 최고작. 과학·유머·감동이 완벽한 균형을 이룬다."</p>
+        <p class="text-gray-500 text-sm">— 독자 리뷰 종합</p>
+      </div>
+      <div class="glass p-6 rounded-2xl reveal delay-2">
+        <p class="text-gray-200 text-lg italic mb-3 leading-relaxed">"읽기 시작하면 잠을 잘 수가 없다. 제발 누군가 말려줬으면 좋겠다."</p>
+        <p class="text-gray-500 text-sm">— 국내 독자 베스트 리뷰</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ AUTHOR ═══════════════════ -->
+<section class="above py-32 px-6">
+  <div class="hr-line mb-32"></div>
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="reveal">
+      <p class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">The Author</p>
+      <div class="text-8xl mb-8 select-none">✍️</div>
+      <h2 class="sec-title mb-8">앤디 위어<br><span class="text-2xl font-medium text-gray-500">Andy Weir</span></h2>
+      <p class="text-xl text-gray-400 leading-relaxed mb-12 max-w-2xl mx-auto">
+        소프트웨어 엔지니어 출신 SF 작가. 철저한 과학적 고증으로
+        '현실감 있는 SF'의 대가로 불린다. 그의 첫 소설 《마션》은
+        리들리 스콧 감독의 영화로도 제작되어 전 세계적 흥행을 거뒀다.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 reveal delay-1">
+      <div class="glass rounded-2xl p-6">
+        <p class="font-bold text-white mb-1">마션 (2011)</p>
+        <p class="text-gray-500 text-sm">영화화 · 전 세계 베스트셀러</p>
+      </div>
+      <div class="glass rounded-2xl p-6 border-blue-500/40" style="background:rgba(10,132,255,.07)">
+        <p class="font-bold text-blue-400 mb-1">프로젝트 헤일메리 (2021)</p>
+        <p class="text-gray-500 text-sm">앤디 위어 3부작 최신작</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <p class="font-bold text-white mb-1">아르테미스 (2017)</p>
+        <p class="text-gray-500 text-sm">달 도시 배경의 SF 소설</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FINAL CTA ═══════════════════ -->
+<section class="above py-32 px-6 glow-blue">
+  <div class="hr-line mb-32"></div>
+  <div class="max-w-3xl mx-auto text-center">
+    <h2 class="text-5xl md:text-7xl font-black leading-tight mb-10 reveal">
+      지금 바로<br><span class="grad-blue">시작하세요.</span>
+    </h2>
+    <p class="text-xl text-gray-400 mb-14 max-w-xl mx-auto leading-relaxed reveal delay-1">
+      기억을 잃은 한 남자와 외계인의 이야기.<br>읽기 시작하면 멈출 수 없다.
+    </p>
+
+    <!-- Book info card + CTA -->
+    <div class="glass p-8 rounded-2xl mb-10 reveal delay-2">
+      <div class="flex flex-col md:flex-row items-center gap-6 justify-between">
+        <div class="text-left">
+          <p class="text-2xl font-bold mb-1">프로젝트 헤일메리</p>
+          <p class="text-gray-400 text-sm">앤디 위어 著 · 강동혁 譯 · 알에이치코리아(RHK)</p>
+        </div>
+        <a href="https://product.kyobobook.co.kr/detail/S000000479333"
+           target="_blank" rel="noopener noreferrer"
+           class="btn-primary whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          교보문고에서 구매 →
+        </a>
+      </div>
+    </div>
+
+    <p class="text-gray-600 text-sm reveal delay-3">
+      교보문고 링크:
+      <a href="https://product.kyobobook.co.kr/detail/S000000479333"
+         target="_blank" rel="noopener noreferrer"
+         class="text-blue-500 hover:text-blue-400 underline underline-offset-2 transition-colors ml-1">
+        product.kyobobook.co.kr/detail/S000000479333
+      </a>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="above border-t border-white/10 py-10 px-6">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <p class="text-gray-600 text-xs">© 2024 프로젝트 헤일메리 홍보 페이지</p>
+    <p class="text-gray-600 text-xs">저자: 앤디 위어 · 번역: 강동혁 · 출판: 알에이치코리아</p>
+    <a href="https://product.kyobobook.co.kr/detail/S000000479333"
+       target="_blank" rel="noopener noreferrer"
+       class="text-blue-500 hover:text-blue-400 text-xs transition-colors">
+      교보문고 바로가기 →
+    </a>
+  </div>
+</footer>
+
+<!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+<script>
+/* ──────── Starfield ──────── */
+(function () {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let stars = [], raf;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function init() {
+    resize();
+    stars = [];
+    const n = Math.floor(canvas.width * canvas.height / 2800);
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x : Math.random() * canvas.width,
+        y : Math.random() * canvas.height,
+        r : Math.random() * 1.1 + 0.2,
+        t : Math.random() * Math.PI * 2,
+        ts: Math.random() * 0.008 + 0.002,
+      });
+    }
+  }
+
+  function draw(time) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.t += s.ts;
+      const a = 0.25 + 0.7 * (0.5 + 0.5 * Math.sin(s.t));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.fill();
+    });
+    raf = requestAnimationFrame(draw);
+  }
+
+  init();
+  requestAnimationFrame(draw);
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { cancelAnimationFrame(raf); init(); requestAnimationFrame(draw); }, 150);
+  });
+})();
+
+/* ──────── Shooting Stars ──────── */
+(function () {
+  function shoot() {
+    const el = document.createElement('div');
+    el.className = 'sstar';
+    el.style.cssText = `
+      left:${Math.random() * 70}vw;
+      top:${Math.random() * 50}vh;
+      animation: shoot ${1.2 + Math.random()}s linear forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+  setInterval(shoot, 4000);
+  setTimeout(shoot, 1200);
+})();
+
+/* ──────── Navbar opacity on scroll ──────── */
+(function () {
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('opaque', window.scrollY > 60);
+  }, { passive: true });
+})();
+
+/* ──────── Scroll reveal ──────── */
+(function () {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+})();
+
+/* ──────── Smooth anchor scroll (custom duration) ──────── */
+function smoothScrollTo(targetY, duration) {
+  const startY = window.scrollY;
+  const diff   = targetY - startY;
+  let start = null;
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    const elapsed  = timestamp - start;
+    const progress = Math.min(elapsed / duration, 1);
+    window.scrollTo(0, startY + diff * easeInOutCubic(progress));
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      smoothScrollTo(target.getBoundingClientRect().top + window.scrollY, 2000);
+    }
+  });
+});
+
+/* ──────── Hero parallax ──────── */
+(function () {
+  const hero = document.querySelector('section');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y < window.innerHeight * 1.2) {
+      hero.style.transform = `translateY(${y * 0.25}px)`;
+      hero.style.opacity   = Math.max(0, 1 - y / (window.innerHeight * 0.8));
+    }
+  }, { passive: true });
+})();
+</script>
+
+</body>
+</html>
