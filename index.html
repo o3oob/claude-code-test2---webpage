@@ -116,6 +116,12 @@
       font-weight: 900;
       letter-spacing: -0.03em;
       line-height: 0.95;
+      background: linear-gradient(135deg, #fff 0%, #aac4ff 40%, #fff 60%, #888 100%);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer-title 8s ease-in-out infinite;
     }
 
     /* ── Section title ── */
@@ -230,9 +236,105 @@
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
     }
+
+    /* ── Reading Progress Bar ── */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, #0A84FF, #30D158, #FFD60A);
+      z-index: 9999; pointer-events: none;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px rgba(10,132,255,0.8);
+    }
+
+    /* ── Hero title shimmer ── */
+    @keyframes shimmer-title {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Hero badge breathing dot ── */
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(10,132,255,0.7); opacity: 1; }
+      50%       { box-shadow: 0 0 0 6px rgba(10,132,255,0); opacity: 0.6; }
+    }
+    .badge-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+
+    /* ── Ambient orb drift ── */
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(4%, 3%) scale(1.1); }
+    }
+
+    /* ── Word-by-word reveal ── */
+    .word-reveal .word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.6s cubic-bezier(.16,1,.3,1),
+                  transform 0.6s cubic-bezier(.16,1,.3,1);
+    }
+    .word-reveal.in .word { opacity: 1; transform: translateY(0); }
+    .word-reveal.in .word:nth-child(1) { transition-delay: 0.00s; }
+    .word-reveal.in .word:nth-child(2) { transition-delay: 0.08s; }
+    .word-reveal.in .word:nth-child(3) { transition-delay: 0.16s; }
+    .word-reveal.in .word:nth-child(4) { transition-delay: 0.24s; }
+    .word-reveal.in .word:nth-child(5) { transition-delay: 0.32s; }
+    .word-reveal.in .word:nth-child(6) { transition-delay: 0.40s; }
+    .word-reveal.in .word:nth-child(7) { transition-delay: 0.48s; }
+    .word-reveal.in .word:nth-child(8) { transition-delay: 0.56s; }
+
+    /* ── Story timeline line ── */
+    .timeline-line {
+      position: absolute;
+      left: 56px;
+      top: 2rem;
+      bottom: 2rem;
+      width: 2px;
+      background: linear-gradient(180deg, var(--blue) 0%, var(--green) 100%);
+      transform-origin: top center;
+      transform: scaleY(0);
+      transition: transform 1.8s cubic-bezier(.16,1,.3,1);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .timeline-line.active { transform: scaleY(1); }
+
+    /* ── Section eyebrow label ── */
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 1.5px;
+      background: currentColor;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Card icon hover glow ── */
+    .card-icon {
+      display: inline-block;
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+    .card-hover:hover .card-icon {
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.35));
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
+
+<div id="progress-bar"></div>
 
 <!-- ═══════════════════ STARFIELD ═══════════════════ -->
 <canvas id="starfield"></canvas>
@@ -250,17 +352,24 @@
 </nav>
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
-<section class="above glow-blue min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24">
-  <div class="max-w-5xl mx-auto w-full">
+<section class="above glow-blue min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24" style="overflow:hidden;">
+
+  <!-- Ambient orbs -->
+  <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;">
+    <div style="position:absolute;top:-10%;left:-5%;width:60vw;height:60vw;border-radius:50%;background:radial-gradient(circle,rgba(10,84,255,0.12) 0%,transparent 70%);filter:blur(40px);animation:drift 20s ease-in-out infinite alternate;"></div>
+    <div style="position:absolute;bottom:-10%;right:-5%;width:45vw;height:45vw;border-radius:50%;background:radial-gradient(circle,rgba(48,209,88,0.07) 0%,transparent 70%);filter:blur(50px);animation:drift 28s ease-in-out infinite alternate-reverse;"></div>
+  </div>
+
+  <div class="max-w-5xl mx-auto w-full" style="position:relative;z-index:1;">
 
     <!-- Badge -->
     <div class="reveal inline-flex items-center gap-2 bg-white/10 border border-white/15 backdrop-blur-sm rounded-full px-4 py-2 mb-10 text-sm text-gray-300">
-      <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+      <span class="badge-dot"></span>
       《마션》 앤디 위어 신작 · 2021
     </div>
 
     <!-- Title -->
-    <h1 class="hero-title grad-white reveal delay-1 mb-6">
+    <h1 class="hero-title reveal delay-1 mb-6">
       프로젝트<br>헤일메리
     </h1>
 
@@ -297,7 +406,7 @@
   <div class="max-w-4xl mx-auto">
 
     <div class="reveal text-center mb-16">
-      <p class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">Opening Scene</p>
+      <p class="section-eyebrow text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">Opening Scene</p>
       <div class="text-5xl md:text-7xl font-black leading-tight">
         <span class="text-white">눈을 뜬다.</span><br>
         <span class="text-gray-700">아무것도 기억나지 않는다.</span>
@@ -325,7 +434,7 @@
 <section class="above py-24 px-6 glow-blue">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-20">
-      <p class="reveal text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">The Crisis</p>
+      <p class="reveal section-eyebrow text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">The Crisis</p>
       <h2 class="sec-title reveal delay-1 mb-6">태양이 죽어가고 있다</h2>
       <p class="reveal delay-2 text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
         미지의 외계 미생물 <span class="text-white font-semibold">'아스트로파지'</span>가 태양을 잠식하고 있다.<br>
@@ -354,7 +463,7 @@
 <section id="story" class="above py-32 px-6">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-24">
-      <p class="reveal text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">The Story</p>
+      <p class="reveal section-eyebrow text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">The Story</p>
       <h2 class="sec-title reveal delay-1 mb-6">인류를 구하러 가는<br>편도 여행</h2>
       <p class="reveal delay-2 text-lg text-gray-400 max-w-xl mx-auto">
         귀환 불가. 동료 전원 사망. 기억 상실.<br>
@@ -363,7 +472,8 @@
     </div>
 
     <!-- Timeline -->
-    <div class="space-y-8 max-w-3xl mx-auto">
+    <div class="timeline-track space-y-8 max-w-3xl mx-auto" style="position:relative;">
+      <div class="timeline-line" aria-hidden="true"></div>
 
       <!-- 01 -->
       <div class="glass p-8 md:p-10 rounded-2xl reveal">
@@ -414,7 +524,7 @@
         </div>
       </div>
 
-    </div>
+    </div><!-- /timeline-track -->
   </div>
 </section>
 
@@ -422,7 +532,7 @@
 <section class="above py-32 px-6 glow-green">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-20">
-      <p class="reveal text-xs font-semibold tracking-widest text-green-400 uppercase mb-4">Characters</p>
+      <p class="reveal section-eyebrow text-xs font-semibold tracking-widest text-green-400 uppercase mb-4">Characters</p>
       <h2 class="sec-title reveal delay-1 mb-6">상상 속 최고의 콤비</h2>
       <p class="reveal delay-2 text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
         서로 다른 별에서 온 두 존재. 언어도, 생김새도 완전히 다르지만
@@ -468,14 +578,14 @@
 <section class="above py-32 px-6">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-20">
-      <p class="reveal text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">Why Read It</p>
+      <p class="reveal section-eyebrow text-xs font-semibold tracking-widest text-blue-400 uppercase mb-4">Why Read It</p>
       <h2 class="sec-title reveal delay-1 mb-6">이 책을 읽어야 하는<br>4가지 이유</h2>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
       <div class="glass card-hover p-8 rounded-2xl reveal">
-        <div class="text-5xl mb-6 select-none">🧬</div>
+        <div class="card-icon text-5xl mb-6 select-none">🧬</div>
         <h3 class="text-xl font-bold mb-3">읽히는 하드 SF</h3>
         <p class="text-gray-400 leading-relaxed text-sm">
           실제 물리학·화학·생물학을 기반으로 한 철저한 고증.
@@ -484,7 +594,7 @@
       </div>
 
       <div class="glass card-hover p-8 rounded-2xl reveal delay-1">
-        <div class="text-5xl mb-6 select-none">😄</div>
+        <div class="card-icon text-5xl mb-6 select-none">😄</div>
         <h3 class="text-xl font-bold mb-3">절망 속의 유머</h3>
         <p class="text-gray-400 leading-relaxed text-sm">
           인류 멸망의 위기 속에서도 웃음을 잃지 않는 주인공.
@@ -493,7 +603,7 @@
       </div>
 
       <div class="glass card-hover p-8 rounded-2xl reveal delay-2">
-        <div class="text-5xl mb-6 select-none">🤝</div>
+        <div class="card-icon text-5xl mb-6 select-none">🤝</div>
         <h3 class="text-xl font-bold mb-3">우주를 넘어선 우정</h3>
         <p class="text-gray-400 leading-relaxed text-sm">
           그레이스와 로키의 우정은 SF 역사상 가장 감동적인 관계 중 하나로 꼽힌다.
@@ -502,7 +612,7 @@
       </div>
 
       <div class="glass card-hover p-8 rounded-2xl reveal delay-3">
-        <div class="text-5xl mb-6 select-none">💔</div>
+        <div class="card-icon text-5xl mb-6 select-none">💔</div>
         <h3 class="text-xl font-bold mb-3">오랫동안 남는 여운</h3>
         <p class="text-gray-400 leading-relaxed text-sm">
           마지막 페이지를 넘기고 나면 한동안 아무것도 할 수 없다.
@@ -518,7 +628,7 @@
 <section class="above py-32 px-6 glow-gold">
   <div class="max-w-5xl mx-auto">
     <div class="text-center mb-20">
-      <p class="reveal text-xs font-semibold tracking-widest text-yellow-400 uppercase mb-4">Recognition</p>
+      <p class="reveal section-eyebrow text-xs font-semibold tracking-widest text-yellow-400 uppercase mb-4">Recognition</p>
       <h2 class="sec-title reveal delay-1 mb-6">전 세계가 인정한<br>SF 걸작</h2>
     </div>
 
@@ -563,7 +673,7 @@
   <div class="hr-line mb-32"></div>
   <div class="max-w-4xl mx-auto text-center">
     <div class="reveal">
-      <p class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">The Author</p>
+      <p class="section-eyebrow text-xs font-semibold tracking-widest text-gray-500 uppercase mb-6">The Author</p>
       <div class="text-8xl mb-8 select-none">✍️</div>
       <h2 class="sec-title mb-8">앤디 위어<br><span class="text-2xl font-medium text-gray-500">Andy Weir</span></h2>
       <p class="text-xl text-gray-400 leading-relaxed mb-12 max-w-2xl mx-auto">
@@ -766,6 +876,50 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
       hero.style.opacity   = Math.max(0, 1 - y / (window.innerHeight * 0.8));
     }
   }, { passive: true });
+})();
+
+/* ──────── Reading Progress Bar ──────── */
+(function () {
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const total = document.body.scrollHeight - window.innerHeight;
+    if (total > 0) bar.style.width = (window.scrollY / total * 100) + '%';
+  }, { passive: true });
+})();
+
+/* ──────── Section title word-reveal ──────── */
+(function () {
+  document.querySelectorAll('.sec-title').forEach(el => {
+    el.classList.add('word-reveal');
+    el.classList.remove('reveal');
+    el.innerHTML = el.innerHTML
+      .split(/(<[^>]+>)/g)
+      .map(part => {
+        if (part.startsWith('<')) return part;
+        return part.split(' ')
+          .filter(w => w.trim())
+          .map(w => `<span class="word">${w}</span>`)
+          .join(' ');
+      })
+      .join('');
+  });
+
+  const obs2 = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.word-reveal').forEach(el => obs2.observe(el));
+})();
+
+/* ──────── Timeline connecting line ──────── */
+(function () {
+  const track = document.querySelector('.timeline-track');
+  const line  = document.querySelector('.timeline-line');
+  if (!track || !line) return;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) line.classList.add('active'); });
+  }, { threshold: 0.1 });
+  obs.observe(track);
 })();
 </script>
 
